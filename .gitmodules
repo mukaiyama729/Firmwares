@@ -1,0 +1,3 @@
+[submodule "crates/robot-protocol"]
+	path = crates/robot-protocol
+	url = https://github.com/mukaiyama729/robot-protocol.git
