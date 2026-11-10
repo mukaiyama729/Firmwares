@@ -4,6 +4,7 @@
 use core::fmt::{self, Write};
 use defmt_rtt as _;
 use embedded_hal::digital::OutputPin;
+use hal::fugit::ExtU32;
 use panic_probe as _;
 use robot_protocol::{self as protocol, Command, MotionState, Response};
 use rp235x_hal as hal;
@@ -16,7 +17,8 @@ pub static IMAGE_DEF: hal::block::ImageDef = hal::block::ImageDef::secure_exe();
 
 const XTAL_HZ: u32 = 12_000_000;
 const STEP_INTERVAL_US: u64 = 5_000;
-const WATCHDOG_US: u64 = 1_500_000;
+const COMMAND_TIMEOUT_US: u64 = 1_500_000;
+const HARDWARE_WATCHDOG_TIMEOUT_US: u32 = 1_500_000;
 const STEPS: [u8; 8] = [1, 3, 2, 6, 4, 12, 8, 9];
 
 // Fixed-size output buffer; no heap allocation on the RP2350.
@@ -86,6 +88,10 @@ fn main() -> ! {
     let _ = in2.set_low();
     let _ = in3.set_low();
     let _ = in4.set_low();
+
+    // Reboot if the main loop stops servicing the motor and USB state machine.
+    // The loop feeds this only after completing a full service iteration.
+    watchdog.start(HARDWARE_WATCHDOG_TIMEOUT_US.micros());
 
     let usb_bus = UsbBusAllocator::new(hal::usb::UsbBus::new(
         pac.USB,
@@ -172,7 +178,7 @@ fn main() -> ! {
         }
 
         let now = timer.get_counter().ticks();
-        if state != MotionState::Stopped && now.wrapping_sub(last_command) >= WATCHDOG_US {
+        if state != MotionState::Stopped && now.wrapping_sub(last_command) >= COMMAND_TIMEOUT_US {
             state = MotionState::Stopped;
         }
 
@@ -211,5 +217,8 @@ fn main() -> ! {
                 let _ = in4.set_low();
             }
         }
+
+        // Keep the hardware watchdog alive only while the main loop progresses.
+        watchdog.feed();
     }
 }
