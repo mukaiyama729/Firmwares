@@ -1,4 +1,7 @@
-use core::cell::{Ref, RefCell};
+use core::{
+    cell::{Ref, RefCell},
+    ops::{Deref, DerefMut},
+};
 
 use critical_section::Mutex;
 
@@ -29,3 +32,15 @@ impl RobotState {
 }
 
 static ROBOT_STATE: Mutex<RefCell<RobotState>> = Mutex::new(RefCell::new(RobotState::new(0u64)));
+
+pub struct RobotStateFactory;
+
+impl RobotStateFactory {
+    fn with_state<R>(f: impl FnOnce(&mut RobotState) -> R) -> R {
+        let new_robot_state = critical_section::with(|cs| {
+            let mut robot_state = ROBOT_STATE.borrow(cs).borrow_mut();
+            f(&mut *robot_state)
+        });
+        new_robot_state
+    }
+}

@@ -1,4 +1,4 @@
 pub trait SetMotionInputPort {
 use crate::application::dto::MotionInput;
-    fn execute(&self, input: MotionInput, ctx: &mut )
+    fn execute(&self, input: MotionInput) -> ();
 }
