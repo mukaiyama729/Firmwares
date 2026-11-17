@@ -16,6 +16,7 @@ defmt = "1"
 defmt-rtt = "1"
 panic-probe = { version = "1", features = ["print-defmt"] }
 robot-protocol = { path = "../../protocol" }
+critical-section = "1.2.0"
 
 [profile.release]
 opt-level = "s"
