@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+mod domain;
 use core::fmt::{self, Write};
 use defmt_rtt as _;
 use embedded_hal::digital::OutputPin;
