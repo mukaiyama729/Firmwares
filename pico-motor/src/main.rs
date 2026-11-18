@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+mod adapter;
 mod domain;
 use core::fmt::{self, Write};
 use defmt_rtt as _;
