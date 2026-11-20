@@ -16,8 +16,25 @@ defmt = "1"
 defmt-rtt = "1"
 panic-probe = { version = "1", features = ["print-defmt"] }
 robot-protocol = { path = "../../protocol" }
+critical-section = "1.2.0"
+embassy-executor = { version = "0.10.0", features = [
+  "platform-cortex-m",
+  "executor-thread",
+] }
+embassy-rp = { version = "0.10.0", features = [
+  "rp235xa",
+  "time-driver",
+  "critical-section-impl",
+] }
+embassy-sync = "0.8.0"
+embassy-time = "0.5.1"
+static_cell = "2.1.1"
+embassy-usb = "0.6.0"
 
 [profile.release]
 opt-level = "s"
 lto = true
 codegen-units = 1
+
+[build]
+target = "thumbv8m.main-none-eabihf"
