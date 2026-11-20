@@ -11,6 +11,15 @@ where
     //pub presenter: &'a mut R,
 }
 
+impl<'a, M> SetMotionUseCase<'a, M>
+where
+    M: MotorPort,
+{
+    pub fn new(motor: &'a M) -> Self {
+        Self { motor: motor }
+    }
+}
+
 impl<'a, M> SetMotionInputPort for SetMotionUseCase<'a, M>
 where
     M: MotorPort,

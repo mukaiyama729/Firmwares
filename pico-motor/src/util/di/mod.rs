@@ -8,9 +8,6 @@ use crate::{
 pub fn create_jetson_controller(
     motor_device: &MotorDevice,
 ) -> JetsonController<SetMotionUseCase<'_, MotorDevice>> {
-    let set_motion_use_case = SetMotionUseCase {
-        motor: motor_device,
-    };
-
+    let set_motion_use_case = SetMotionUseCase::new(motor_device);
     JetsonController::new(set_motion_use_case)
 }
