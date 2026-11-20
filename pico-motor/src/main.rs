@@ -2,6 +2,7 @@
 #![no_main]
 
 mod adapter;
+mod application;
 mod domain;
 use core::fmt::{self, Write};
 use defmt_rtt as _;
