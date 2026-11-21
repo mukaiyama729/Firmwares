@@ -3,7 +3,7 @@
 
 mod adapter;
 mod application;
-mod config;
+mod compose;
 mod domain;
 use core::{
     fmt::{self, Write},
