@@ -3,8 +3,13 @@
 
 mod adapter;
 mod application;
+mod config;
 mod domain;
-mod util;
+use core::{
+    fmt::{self, Write},
+    str::from_utf8,
+};
+
 use defmt_rtt as _;
 use embedded_hal::digital::OutputPin;
 use hal::fugit::ExtU32;
@@ -13,7 +18,6 @@ use robot_protocol::{self as protocol, Command, MotionState, Response};
 use rp235x_hal as hal;
 use usb_device::{class_prelude::*, prelude::*};
 use usbd_serial::SerialPort;
-use util::fmt::{self, Write};
 
 #[unsafe(link_section = ".start_block")]
 #[used]
@@ -132,7 +136,7 @@ fn main() -> ! {
                 for &byte in &buf[..count] {
                     if byte == b'\n' {
                         if !discard_line && !pending.pending() {
-                            let response = match util::str::from_utf8(&received[..received_len])
+                            let response = match from_utf8(&received[..received_len])
                                 .ok()
                                 .and_then(|s| protocol::decode_request(s).ok())
                             {
