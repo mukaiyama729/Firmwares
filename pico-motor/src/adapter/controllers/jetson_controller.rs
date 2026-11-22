@@ -5,6 +5,7 @@ use crate::{
     application::{
         dto::set_motion_dto::MotionInput, ports::inbound::jetson::set_motion::SetMotionInputPort,
     },
+    domain::motor::Motion,
 };
 
 pub struct JetsonController<C>
@@ -33,8 +34,23 @@ where
                 Ok(some_str) => some_str,
                 Err(_) => continue,
             };
+            let req = match robot_protocol::decode_request(instruction) {
+                Ok(req) => req,
+                Err(_) => continue,
+            };
 
-            self.usecase.execute(input).await
+            let input = match req.command {
+                robot_protocol::Command::Stop => MotionInput::new(Motion::Stopped, req.seq),
+                robot_protocol::Command::Forward => MotionInput::new(Motion::Forward, req.seq),
+                robot_protocol::Command::Backward => MotionInput::new(Motion::Backward, req.seq),
+                robot_protocol::Command::Status | robot_protocol::Command::Ping => {
+                    MotionInput::read_state(req.seq)
+                }
+            };
+
+            if self.usecase.execute(input).await.is_err() {
+                defmt::warn!("Failed to present motion response");
+            }
         }
     }
 }
