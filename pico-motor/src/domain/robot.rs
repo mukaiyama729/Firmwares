@@ -3,7 +3,9 @@ use core::{
     ops::{Deref, DerefMut},
 };
 
-use critical_section::Mutex;
+//use critical_section::Mutex;
+use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
+use embassy_sync::mutex::Mutex;
 
 use crate::domain::{
     motor::Motion,
@@ -31,16 +33,22 @@ impl RobotState {
     }
 }
 
-static ROBOT_STATE: Mutex<RefCell<RobotState>> = Mutex::new(RefCell::new(RobotState::new(0u64)));
+static ROBOT_STATE: Mutex<CriticalSectionRawMutex, RobotState> = Mutex::new(RobotState::new(0u64));
 
 pub struct RobotStateFactory;
 
 impl RobotStateFactory {
-    fn with_state<R>(f: impl FnOnce(&mut RobotState) -> R) -> R {
-        let new_robot_state = critical_section::with(|cs| {
-            let mut robot_state = ROBOT_STATE.borrow(cs).borrow_mut();
-            f(&mut *robot_state)
-        });
-        new_robot_state
+    /// Last accepted motion, initially stopped; hardware application is not confirmed.
+    pub(crate) async fn accepted_motion() -> Motion {
+        Self::with_state(|state| state.motion).await
+    }
+
+    pub(crate) async fn set_accepted_motion(motion: Motion) {
+        Self::with_state(|state| state.motion = motion).await;
+    }
+
+    async fn with_state<R>(f: impl FnOnce(&mut RobotState) -> R) -> R {
+        let mut new_robot_state = ROBOT_STATE.lock().await;
+        f(&mut new_robot_state)
     }
 }
