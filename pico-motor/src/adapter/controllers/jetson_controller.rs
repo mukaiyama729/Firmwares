@@ -13,16 +13,16 @@ where
     C: SetMotionInputPort,
 {
     cdc_acm_client: &'static CdcAcmClient,
-    usecase: C,
+    motion_usecase: C,
 }
 
 impl<C> JetsonController<C>
 where
     C: SetMotionInputPort,
 {
-    pub fn new(usecase: C, cdc_acm_client: &'static CdcAcmClient) -> Self {
+    pub fn new(motion_usecase: C, cdc_acm_client: &'static CdcAcmClient) -> Self {
         Self {
-            usecase,
+            motion_usecase,
             cdc_acm_client,
         }
     }
@@ -48,7 +48,7 @@ where
                 }
             };
 
-            if self.usecase.execute(input).await.is_err() {
+            if self.motion_usecase.execute(input).await.is_err() {
                 defmt::warn!("Failed to present motion response");
             }
         }
